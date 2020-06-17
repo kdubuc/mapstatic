@@ -5,6 +5,9 @@ COPY node_modules node_modules
 COPY src src
 COPY package.json .
 
+# Install the dependencies
+RUN npm install --only=production
+
 # Add curl
 RUN apk --no-cache add curl
 
