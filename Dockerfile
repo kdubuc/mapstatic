@@ -1,7 +1,6 @@
 FROM node:alpine
 
 # Copy source
-COPY node_modules node_modules
 COPY src src
 COPY package.json .
 
