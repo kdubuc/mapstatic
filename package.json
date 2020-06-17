@@ -1,0 +1,15 @@
+{
+    "private": true,
+    "main": "./src/index.mjs",
+    "dependencies": {
+        "@godaddy/terminus": "^4.4.1",
+        "axios": "^0.19.2",
+        "express": "^4.0",
+        "helmet": "^3.22.0"
+    },
+    "devDependencies": {
+        "eslint": "^6.8.0",
+        "eslint-config-airbnb-base": "^14.1.0",
+        "eslint-plugin-import": "^2.20.2"
+    }
+}
