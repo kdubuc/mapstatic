@@ -11,6 +11,11 @@ const app = express();
 // API Middleware : Security shield
 app.use(helmet());
 
+// Build the axios config object with defaults values and user values (MAPSTATIC_CONFIG env)
+const config = mergeDeep({
+  url: 'https://wms.openstreetmap.fr/wms',
+}, process.env.MAPSTATIC_CONFIG ? JSON.parse(process.env.MAPSTATIC_CONFIG) : {});
+
 // Mapstatic endpoint
 app.get('/static', async (req, res) => {
   // Get all params into the query string
@@ -33,37 +38,31 @@ app.get('/static', async (req, res) => {
   const east = getLonLat(TileXEast, TileYEast, zoom);
   const bbox = [south[0], east[1], east[0], south[1]];
 
-  // Build the axios config object with defaults values and user values (MAPSTATIC_CONFIG env)
-  const config = mergeDeep({
-    url: 'https://wms.openstreetmap.fr/wms',
-    responseType: 'arraybuffer',
-    timeout: 30000,
-    params: {
-      service: 'WMS',
-      version: '1.1.1',
-      request: 'GetMap',
-      layers,
-      bbox: bbox.join(),
-      width,
-      height,
-      format: 'image/jpeg',
-      SRS: 'EPSG:4326',
-    }
-  }, process.env.MAPSTATIC_CONFIG ? JSON.parse(process.env.MAPSTATIC_CONFIG) : {});
-
   // Try to get map image thanks to WMS service url
   try {
-    const response = await axios(config);
+    const response = await axios(mergeDeep({
+      responseType: 'arraybuffer',
+      timeout: 30000,
+      params: {
+        service: 'WMS',
+        version: '1.1.1',
+        request: 'GetMap',
+        layers,
+        bbox: bbox.join(),
+        width,
+        height,
+        format: 'image/jpeg',
+        SRS: 'EPSG:4326',
+      },
+    }, config));
     res.set(response.headers);
     res.status(response.status);
     res.send(response.data);
-  }
-  catch(e) {
+  } catch (e) {
     console.log(e);
     res.status(500);
     res.send();
   }
-  
 });
 
 // HTTP Server
@@ -73,7 +72,9 @@ const server = createServer(app);
 terminus.createTerminus(server, {
   logger: console.log,
   signal: 'SIGINT',
-  healthChecks: { '/_healthcheck': () => Promise.resolve() },
+  healthChecks: {
+    '/_healthcheck': () => axios(mergeDeep({ params: { service: 'WMS', request: 'GetCapabilities' } }, config)).then((response) => response.data),
+  },
 });
 
 // Listen for incomming HTTP requests

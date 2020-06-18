@@ -11,7 +11,7 @@ RUN npm install --only=production
 RUN apk --no-cache add curl
 
 # Healthcheck routine.
-HEALTHCHECK --interval=3s --timeout=3s CMD curl -sS --fail --head 0.0.0.0:80/_healthcheck || exit 1
+HEALTHCHECK --interval=30s --timeout=3s CMD curl -sS --fail --head 0.0.0.0:80/_healthcheck || exit 1
 
 # Expose HTTP port
 EXPOSE 80
